@@ -7,9 +7,10 @@ export class FeedRoutes extends CommonRoutesConfig {
     }
 
     configureRoutes(): express.Application {
-        this.app.route('/feed')
+        this.app
+            .route('/feed')
             .get((req: express.Request, res: express.Response) => {
-                res.status(200).send("FEED")
+                res.status(200).send('FEED')
             })
         return this.app
     }

@@ -23,7 +23,7 @@ const loggerOptions: expressWinston.LoggerOptions = {
     format: winston.format.combine(
         winston.format.json(),
         winston.format.prettyPrint(),
-        winston.format.colorize({ all: true })
+        winston.format.colorize({ all: true }),
     ),
 }
 
@@ -36,14 +36,14 @@ app.use(expressWinston.logger(loggerOptions))
 routes.push(new IndexRoutes(app))
 routes.push(new FeedRoutes(app))
 
-const runningMessage = `Server running at http://localhost:${port}`;
+const runningMessage = `Server running at http://localhost:${port}`
 app.get('/', (req: express.Request, res: express.Response) => {
     res.status(200).send(runningMessage)
 })
 
 newServer.listen(port, () => {
     routes.forEach((route: CommonRoutesConfig) => {
-        debugLog(`Routes configured for ${route.getName()}`);
-    });
-    console.log(runningMessage);
+        debugLog(`Routes configured for ${route.getName()}`)
+    })
+    console.log(runningMessage)
 })

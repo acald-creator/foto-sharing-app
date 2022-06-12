@@ -4,12 +4,12 @@ import { config } from './database.config'
 const c = config.dev
 
 const sequelize = new Sequelize({
-    'username': c.username,
-    'password': c.password,
-    'database': c.database,
-    'host': c.host,
+    username: c.username,
+    password: c.password,
+    database: c.database,
+    host: c.host,
     dialect: 'postgres',
-    storage: ':memory:'
+    storage: ':memory:',
 })
 
 export { sequelize }

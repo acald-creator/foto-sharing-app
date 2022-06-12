@@ -3,13 +3,15 @@ import { config } from './database.config'
 
 const c = config.dev
 
-const credentials = new AWS.SharedIniFileCredentials({ profile: c.aws_profile })
+const credentials = new AWS.SharedIniFileCredentials({
+    profile: c.aws_profile,
+})
 AWS.config.credentials = credentials
 
 const s3 = new AWS.S3({
     signatureVersion: 'v4',
     region: c.aws_region,
-    params: { Bucket: c.aws_media_bucket},
+    params: { Bucket: c.aws_media_bucket },
 })
 
 const signedURLExpireSeconds = 60 * 5
@@ -40,7 +42,7 @@ function getPutSignedURL(key: string) {
     const url = s3.getSignedUrl('putObject', {
         Bucket: c.aws_media_bucket,
         Key: key,
-        Expires: signedURLExpireSeconds
+        Expires: signedURLExpireSeconds,
     })
 
     return url
