@@ -1,5 +1,6 @@
 import express from 'express'
 import { CommonRoutesConfig } from '../common/common.routes.config'
+import { UserInfo } from '../controllers/interfaces/models/User'
 
 export class UserRoutes extends CommonRoutesConfig {
     constructor(app: express.Application) {
@@ -8,9 +9,11 @@ export class UserRoutes extends CommonRoutesConfig {
 
     configureRoutes(): express.Application {
         this.app
-            .route('/user')
-            .get((req: express.Request, res: express.Response) => {
-                res.status(200).send('USER')
+            .route('/:id')
+            .get(async (req: express.Request, res: express.Response) => {
+                const { id } = req.params
+                const item = await UserInfo.findByPk(id)
+                res.status(200).send(item)
             })
         return this.app
     }
