@@ -1,5 +1,4 @@
 import cors from 'cors'
-import HTTP from 'http'
 import debug from 'debug'
 import express from 'express'
 import * as winston from 'winston'
@@ -10,7 +9,6 @@ import { CommonRoutesConfig } from './common/common.routes.config'
 
 const app: express.Application = express()
 const port = process.env.PORT || 8080
-const newServer: HTTP.Server = HTTP.createServer()
 const routes: Array<CommonRoutesConfig> = []
 const debugLog: debug.IDebugger = debug('app')
 
@@ -41,7 +39,7 @@ app.get('/', (req: express.Request, res: express.Response) => {
     res.status(200).send(runningMessage)
 })
 
-newServer.listen(port, () => {
+app.listen(port, () => {
     routes.forEach((route: CommonRoutesConfig) => {
         debugLog(`Routes configured for ${route.getName()}`)
     })
