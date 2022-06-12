@@ -4,8 +4,9 @@ import express from 'express'
 import * as winston from 'winston'
 import * as expressWinston from 'express-winston'
 import { IndexRoutes } from './routes/index.router'
-import { UserRoutes } from './routes/user.routes.config'
+import { UserRoutes } from './routes/user.router'
 import { CommonRoutesConfig } from './common/common.routes.config'
+import { AuthRoutes } from './routes/auth.router'
 
 export function InitExpressApp(port = process.env.PORT || 8080): void {
     const app: express.Application = express()
@@ -32,6 +33,7 @@ export function InitExpressApp(port = process.env.PORT || 8080): void {
     app.use(expressWinston.logger(loggerOptions))
 
     routes.push(new IndexRoutes(app))
+    routes.push(new AuthRoutes(app))
     routes.push(new UserRoutes(app))
 
     const runningMessage = `Server running at http://localhost:${port}`

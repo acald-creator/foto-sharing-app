@@ -7,8 +7,28 @@ import {
     UpdatedAt,
 } from 'sequelize-typescript'
 
+interface IUser {
+    email: string
+    password_hash: string
+    createdAt: Date | string | number
+    updatedAt: Date | string | number
+}
+class User implements IUser {
+    constructor(
+        public email: string,
+        public password_hash: string,
+        public createdAt: Date | string | number,
+        public updatedAt: Date | string | number,
+    ) {
+        this.email = email
+        this.password_hash = password_hash
+        this.createdAt = createdAt
+        this.updatedAt = updatedAt
+    }
+}
+
 @Table
-class User extends Model<User> {
+export class UserInfo extends Model<User> {
     @PrimaryKey
     @Column
     public email!: string
@@ -30,5 +50,3 @@ class User extends Model<User> {
         }
     }
 }
-
-export { User }

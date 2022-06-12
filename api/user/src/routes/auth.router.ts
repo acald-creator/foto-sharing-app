@@ -1,31 +1,57 @@
+import * as bcrypt from 'bcrypt'
+import * as jose from 'jose'
 import express, { Router } from 'express'
 import * as EmailValidator from 'email-validator'
-import { User } from '../controllers/interfaces/models/User'
+import { config } from '../common/config/database.config'
+import { UserInfo } from '../controllers/interfaces/models/User'
+import { CommonRoutesConfig } from '../common/common.routes.config'
 
 const router: Router = express.Router()
+const c = config.dev
+const j = config.jwt
+// const payload = { 'urn:example:claim': true }
 
-function generateJWT(user: User): string {
-    return 'NotYetImplemented'
+async function generateJWT(user: UserInfo): Promise<string> {
+    const jwt = await new jose.SignJWT(user.short())
+        .setProtectedHeader({ alg: 'HS256' })
+        .sign(j.secret)
+    return jwt
 }
 
 async function generatePassword(plainTextPassword: string): Promise<string> {
-    return 'NotYetImplemented'
+    const saltRounds = 10
+    const salt = await bcrypt.genSalt(saltRounds)
+    return await bcrypt.hash(plainTextPassword, salt)
 }
 
 async function comparePasswords(
     plainTextPassword: string,
     hash: string,
 ): Promise<boolean> {
-    return true
+    return await bcrypt.compare(plainTextPassword, hash)
 }
 
-export function requireAuth(
-    req: express.Express,
+export async function requireAuth(
+    req: express.Request,
     res: express.Response,
     next: express.NextFunction,
 ) {
-    console.warn(`auth router not yet implemented.`)
-    return next()
+    if (!req.headers || !req.headers.authorization) {
+        return res.status(401).send({ message: 'No authorization headers ' })
+    }
+
+    const tokenBearer = req.headers.authorization.split(' ')
+    if (tokenBearer.length != 2) {
+        return res.status(401).send({ message: 'Malformed token' })
+    }
+
+    const token = tokenBearer[1]
+    const verifyToken = await jose.jwtVerify(token, j.secret)
+    if (!verifyToken) {
+        return res
+            .status(500)
+            .send({ auth: false, message: 'Failed to authenticate.' })
+    }
 }
 
 router.get(
@@ -52,7 +78,7 @@ router.post('/login', async (req: express.Request, res: express.Response) => {
             .send({ auth: false, message: 'Password is required.' })
     }
 
-    const user = await User.findByPk(email)
+    const user = await UserInfo.findByPk(email)
     if (!user) {
         return res.status(401).send({ auth: false, message: 'Unauthorized. ' })
     }
@@ -75,26 +101,25 @@ router.post('/', async (req: express.Request, res: express.Response) => {
             .send({ auth: false, message: 'Email is required or malformed' })
     }
 
-    // check email password valid
     if (!plainTextPassword) {
         return res
             .status(400)
             .send({ auth: false, message: 'Password is required' })
     }
 
-    const user = await User.findByPk(email)
+    const user = await UserInfo.findByPk(email)
     if (user) {
         return res
             .status(422)
             .send({ auth: false, message: 'User may already exist' })
     }
 
-    const password_hash = await generatePassword(plainTextPassword)
-
-    const newUser = new User({
+    const generatedHash = await generatePassword(plainTextPassword)
+    const newUser = new UserInfo({
         email: email,
-        password_hash: password_hash,
+        password_hash: generatedHash,
         createdAt: Date.now(),
+        updatedAt: Date.now(),
     })
 
     let savedUser
@@ -112,4 +137,17 @@ router.get('/', async (req: express.Request, res: express.Response) => {
     res.send('auth')
 })
 
-export const AuthRouter: Router = router
+export class AuthRoutes extends CommonRoutesConfig {
+    constructor(app: express.Application) {
+        super(app, 'AuthRoutes')
+    }
+
+    configureRoutes(): express.Application {
+        this.app
+            .route('/auth')
+            .get((req: express.Request, res: express.Response) => {
+                res.status(200).send('AUTH')
+            })
+        return this.app
+    }
+}
