@@ -8,9 +8,9 @@ export class IndexRoutes extends CommonRoutesConfig {
 
     configureRoutes() {
         this.app
-            .route(`/`)
+            .route(`/api/v0`)
             .get((req: express.Request, res: express.Response) => {
-                res.send(`V0`)
+                res.send(`/api/v0`)
             })
         return this.app
     }

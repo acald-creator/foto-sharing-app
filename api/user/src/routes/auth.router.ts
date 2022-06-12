@@ -1,5 +1,5 @@
 import * as bcrypt from 'bcrypt'
-import * as jose from 'jose'
+import * as jwt from 'jsonwebtoken'
 import express, { Router } from 'express'
 import * as EmailValidator from 'email-validator'
 import { config } from '../common/config/database.config'
@@ -12,10 +12,7 @@ const j = config.jwt
 // const payload = { 'urn:example:claim': true }
 
 async function generateJWT(user: UserInfo): Promise<string> {
-    const jwt = await new jose.SignJWT(user.short())
-        .setProtectedHeader({ alg: 'HS256' })
-        .sign(j.secret)
-    return jwt
+    return jwt.sign(user.short(), j.secret)
 }
 
 async function generatePassword(plainTextPassword: string): Promise<string> {
@@ -46,12 +43,14 @@ export async function requireAuth(
     }
 
     const token = tokenBearer[1]
-    const verifyToken = await jose.jwtVerify(token, j.secret)
-    if (!verifyToken) {
-        return res
-            .status(500)
-            .send({ auth: false, message: 'Failed to authenticate.' })
-    }
+    return jwt.verify(token, j.secret, (err, decoded) => {
+        if (err) {
+            return res
+                .status(500)
+                .send({ auth: false, message: 'Failed to authenticate.' })
+        }
+        return next()
+    })
 }
 
 router.get(
@@ -132,22 +131,3 @@ router.post('/', async (req: express.Request, res: express.Response) => {
     const jwt = generateJWT(savedUser)
     res.status(201).send({ token: jwt, user: savedUser.short() })
 })
-
-router.get('/', async (req: express.Request, res: express.Response) => {
-    res.send('auth')
-})
-
-export class AuthRoutes extends CommonRoutesConfig {
-    constructor(app: express.Application) {
-        super(app, 'AuthRoutes')
-    }
-
-    configureRoutes(): express.Application {
-        this.app
-            .route('/auth')
-            .get((req: express.Request, res: express.Response) => {
-                res.status(200).send('AUTH')
-            })
-        return this.app
-    }
-}
